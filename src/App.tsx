@@ -7,6 +7,7 @@ import { BoxProvider } from "./context/BoxContext";
 
 function App() {
 	return (
+		// Wrapping the App with Provider
 		<BoxProvider>
 			<BrowserRouter>
 				<div className="min-h-screen bg-gray-50">

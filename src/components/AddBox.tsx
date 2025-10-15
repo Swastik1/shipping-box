@@ -95,9 +95,9 @@ const AddBox = () => {
 	};
 
 	return (
-		<div className="container mx-auto px-4 py-8">
-			<div className="max-w-2xl mx-auto bg-white rounded-lg shadow-lg p-8">
-				<h2 className="text-3xl font-bold text-gray-800 mb-6">
+		<div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
+			<div className="max-w-2xl mx-auto bg-white rounded-lg shadow-lg p-4 sm:p-6 md:p-8">
+				<h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-4 sm:mb-6">
 					Add New Shipping Box
 				</h2>
 
@@ -193,20 +193,42 @@ const AddBox = () => {
 							Destination Country{" "}
 							<span className="text-red-500">*</span>
 						</label>
-						<select
-							value={destinationCountry}
-							onChange={(e) =>
-								setDestinationCountry(e.target.value as Country)
-							}
-							className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-						>
-							{Object.keys(COUNTRY_RATES).map((country) => (
-								<option key={country} value={country}>
-									{country} (
-									{COUNTRY_RATES[country as Country]} INR/kg)
-								</option>
-							))}
-						</select>
+						<div className="relative">
+							<select
+								id="destinationCountry"
+								name="destinationCountry"
+								value={destinationCountry}
+								onChange={(e) => {
+									setDestinationCountry(
+										e.target.value as Country
+									);
+									setErrors([]);
+								}}
+								className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white appearance-none cursor-pointer"
+							>
+								{Object.keys(COUNTRY_RATES).map((country) => (
+									<option key={country} value={country}>
+										{country} (
+										{COUNTRY_RATES[country as Country]}{" "}
+										INR/kg)
+									</option>
+								))}
+							</select>
+
+							<div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-gray-700">
+								<svg
+									className="h-5 w-5 fill-current"
+									xmlns="http://www.w3.org/2000/svg"
+									viewBox="0 0 20 20"
+								>
+									<path
+										fillRule="evenodd"
+										d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+										clipRule="evenodd"
+									/>
+								</svg>
+							</div>
+						</div>
 					</div>
 
 					{/* Submit Button */}
