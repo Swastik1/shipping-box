@@ -4,7 +4,9 @@ A modern, responsive web application for calculating shipping costs for boxes to
 
 ## 🚀 Live Demo
 
-[Depolyed url to be added - ]
+-   Log in to vercel
+-   Navigate to
+    [https://shipping-fi3kfca75-swastiks-projects-22cd5f0f.vercel.app/]
 
 ## 📋 Table of Contents
 
