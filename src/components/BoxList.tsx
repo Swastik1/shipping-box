@@ -1,34 +1,96 @@
 import React, { useState, useMemo } from "react";
 import { useBoxContext } from "../context/BoxContext";
 import { useDebounce } from "../hooks/useDebounce";
+import { Country, SortField } from "../types";
 
 const BoxList = () => {
 	// Get boxes from context
 	const { boxes, deleteBox } = useBoxContext();
 	const [searchTerm, setSearchTerm] = useState("");
 	const debouncedSearchTerm = useDebounce(searchTerm, 500);
+	const [filterCountry, setFilterCountry] = useState<Country | "all">("all");
+	const [sortField, setSortField] = useState<SortField | "none">("none");
+	const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+
+	const handleSort = (field: string) => {
+		if (sortField === field) {
+			setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+		} else {
+			setSortField(field as SortField);
+			setSortOrder("asc");
+		}
+	};
 
 	const filteredBoxes = useMemo(() => {
-		return boxes.filter(
-			(box) =>
+		let result = boxes.filter((box) => {
+			const matchesSearch =
 				box.receiverName
 					.toLowerCase()
 					.includes(debouncedSearchTerm.toLowerCase()) ||
 				box.destinationCountry
 					.toLowerCase()
-					.includes(debouncedSearchTerm.toLowerCase())
-		);
-	}, [boxes, debouncedSearchTerm]);
+					.includes(debouncedSearchTerm.toLowerCase());
+			const matchesCountry =
+				filterCountry === "all" ||
+				box.destinationCountry === filterCountry;
+
+			return matchesSearch && matchesCountry;
+		});
+
+		// Sort if it is not none
+
+		if (sortField !== "none") {
+			result = [...result].sort((a, b) => {
+				let valueA, valueB;
+				switch (sortField) {
+					case "name":
+						valueA = a.receiverName.toLowerCase();
+						valueB = b.receiverName.toLowerCase();
+						break;
+					case "weight":
+						valueA = a.weight;
+						valueB = b.weight;
+						break;
+					case "cost":
+						valueA = a.shippingCost;
+						valueB = b.shippingCost;
+						break;
+					default:
+						return 0;
+				}
+				if (valueA < valueB) return sortOrder === "asc" ? -1 : 1;
+				if (valueA > valueB) return sortOrder === "asc" ? 1 : -1;
+				return 0;
+			});
+		}
+
+		return result;
+	}, [boxes, debouncedSearchTerm, filterCountry, sortField, sortOrder]);
+
+	const totalShippingCost = useMemo(() => {
+		return boxes.reduce((sum, box) => sum + box.shippingCost, 0);
+	}, [boxes]);
 
 	return (
 		<div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
 			<div className="bg-white rounded-lg shadow-lg p-4 sm:p-6 md:p-8">
-				<h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-4 sm:mb-6">
-					Shipping Box List
-				</h2>
+				<div className="flex justify-between items-center mb-6">
+					<h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-4 sm:mb-6">
+						Shipping Box List
+					</h2>
+					{/* Total Cost */}
+					{boxes.length > 0 && (
+						<div className="bg-blue-100 px-4 py-2 rounded-lg">
+							<span className="text-blue-800 font-semibold text-l">
+								Total Cost : ₹{totalShippingCost.toFixed(2)}
+							</span>
+						</div>
+					)}
+				</div>
 
+				{/* Search Input */}
 				{boxes.length > 0 && (
-					<div className="mb-6">
+					<div className="flex gap-4 mb-6">
 						<input
 							type="text"
 							value={searchTerm}
@@ -36,6 +98,44 @@ const BoxList = () => {
 							className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent text-nowrap"
 							placeholder="Search by Receiver..."
 						/>
+						<select
+							value={filterCountry}
+							onChange={(e) =>
+								setFilterCountry(
+									e.target.value as Country | "all"
+								)
+							}
+							className="w-2xl bg-white-200 pl-4 pr-10 py-2 cursor-pointer rounded-lg border border-gray-300 text-indigo-500 appearance-none"
+							style={{
+								backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E")`,
+								backgroundPosition: "right 0.75rem center",
+								backgroundRepeat: "no-repeat",
+								backgroundSize: "1.5em 1.5em",
+							}}
+						>
+							<option value="all">All Countries</option>
+							<option value="Sweden">Sweden</option>
+							<option value="China">China</option>
+							<option value="Brazil">Brazil</option>
+							<option value="Australia">Australia</option>
+						</select>
+
+						{/* Clear All Filters - Show when any filter is active */}
+						{(searchTerm !== "" ||
+							filterCountry !== "all" ||
+							sortField !== "none") && (
+							<button
+								onClick={() => {
+									setSearchTerm("");
+									setFilterCountry("all");
+									setSortField("none");
+									setSortOrder("asc");
+								}}
+								className="px-4 py-2 bg-gray-100 text-black-700 rounded-lg hover:bg-gray-200 transition-colors whitespace-nowrap font-semibold"
+							>
+								Clear All
+							</button>
+						)}
 					</div>
 				)}
 
@@ -55,10 +155,36 @@ const BoxList = () => {
 							<thead>
 								<tr className="bg-blue-600 text-white">
 									<th className="px-3 sm:px-4 md:px-6 py-2 sm:py-3 text-left text-xs sm:text-sm font-semibold">
-										Receiver Name
+										<button
+											onClick={() => handleSort("name")}
+											className="flex items-center gap-2 hover:text-blue-200 transition-colors"
+										>
+											Receiver Name
+											<span className="text-base">
+												{
+													sortField === "name"
+														? sortOrder === "asc"
+															? "↑"
+															: "↓" // Active: single arrow
+														: "↕" // Inactive: both arrows
+												}
+											</span>
+										</button>
 									</th>
 									<th className="px-3 sm:px-4 md:px-6 py-2 sm:py-3 text-left text-xs sm:text-sm font-semibold">
-										Weight (kg)
+										<button
+											onClick={() => handleSort("weight")}
+											className="flex items-center gap-2 hover:text-blue-200 transition-colors"
+										>
+											Weight (kg) {""}
+											<span className="text-base">
+												{sortField === "weight"
+													? sortOrder === "asc"
+														? "↑"
+														: "↓"
+													: "↕"}
+											</span>
+										</button>
 									</th>
 									<th className="px-3 sm:px-4 md:px-6 py-2 sm:py-3 text-left text-xs sm:text-sm font-semibold">
 										Box Color
@@ -67,7 +193,19 @@ const BoxList = () => {
 										Destination
 									</th>
 									<th className="px-3 sm:px-4 md:px-6 py-2 sm:py-3 text-left text-xs sm:text-sm font-semibold">
-										Cost (INR)
+										<button
+											onClick={() => handleSort("cost")}
+											className="flex items-center gap-2 hover:text-blue-200 transition-colors"
+										>
+											Cost (INR)
+											<span className="text-base">
+												{sortField === "cost"
+													? sortOrder === "asc"
+														? "↑"
+														: "↓"
+													: "↕"}
+											</span>
+										</button>
 									</th>
 									<th className="px-3 sm:px-4 md:px-6 py-2 sm:py-3 text-left text-xs sm:text-sm font-semibold">
 										Actions

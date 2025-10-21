@@ -1,4 +1,5 @@
 export type Country = "Sweden" | "China" | "Brazil" | "Australia";
+export type SortField = "name" | "weight" | "cost" | "none";
 
 export const COUNTRY_RATES: Record<Country, number> = {
 	Sweden: 7.35,
