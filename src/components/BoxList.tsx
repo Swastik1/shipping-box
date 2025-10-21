@@ -6,7 +6,7 @@ const BoxList = () => {
 	// Get boxes from context
 	const { boxes, deleteBox } = useBoxContext();
 	const [searchTerm, setSearchTerm] = useState("");
-	const debouncedSearchTerm = useDebounce(searchTerm, 5000);
+	const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
 	const filteredBoxes = useMemo(() => {
 		return boxes.filter(
@@ -28,13 +28,13 @@ const BoxList = () => {
 				</h2>
 
 				{boxes.length > 0 && (
-					<div>
+					<div className="mb-6">
 						<input
 							type="text"
 							value={searchTerm}
 							onChange={(e) => setSearchTerm(e.target.value)}
-							className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus: border-transparent"
-							placeholder="Search by Receiver / Destination"
+							className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent text-nowrap"
+							placeholder="Search by Receiver..."
 						/>
 					</div>
 				)}
@@ -79,8 +79,9 @@ const BoxList = () => {
 							<tbody>
 								{filteredBoxes.length === 0 ? (
 									<tr>
-										<td>
-											No boxes found matching {searchTerm}
+										<td className="px-6 py-8 text-gray-500 text-center">
+											No boxes found matching {searchTerm}{" "}
+											...
 										</td>
 									</tr>
 								) : (
